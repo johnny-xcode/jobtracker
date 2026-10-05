@@ -5,7 +5,7 @@ export const getJobs = async (req, res) => {
   try {
     const q = (req.query.q || "").trim();
     const status = req.query.status || "";
-    const filter = {};
+    const filter = { user: req.user._id };
 
     if (status && JOB_STATUS.includes(status)) {
       filter.status = status;
@@ -30,7 +30,7 @@ export const getJobs = async (req, res) => {
 
 export const getJob = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findOne({ _id: req.params.id, user: req.user._id });
     if (!job) return res.status(404).json({ message: "Job not found" });
     res.json(job);
   } catch (error) {
@@ -43,8 +43,13 @@ export const createJob = async (req, res) => {
     const { link, tags, ...rest } = req.body;
     const job = await Job.create({
       ...rest,
+      user: req.user._id,
       link: link ? normalizeUrl(link) || link : link,
-      tags: Array.isArray(tags) ? tags : tags ? String(tags).split(",").map((t) => t.trim()).filter(Boolean) : [],
+      tags: Array.isArray(tags)
+        ? tags
+        : tags
+        ? String(tags).split(",").map((t) => t.trim()).filter(Boolean)
+        : [],
       extracted: false,
     });
     res.status(201).json(job);
@@ -74,7 +79,7 @@ export const addJobFromLink = async (req, res) => {
   try {
     const data = await fetchJobData(link);
     delete data.enriched;
-    const job = await Job.create({ ...data, extracted: true });
+    const job = await Job.create({ ...data, user: req.user._id, extracted: true });
     res.status(201).json(job);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -83,7 +88,7 @@ export const addJobFromLink = async (req, res) => {
 
 export const updateJob = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await Job.findOne({ _id: req.params.id, user: req.user._id });
     if (!job) return res.status(404).json({ message: "Job not found" });
 
     const { tags, ...rest } = req.body;
@@ -106,7 +111,7 @@ export const updateJob = async (req, res) => {
 
 export const deleteJob = async (req, res) => {
   try {
-    const job = await Job.findByIdAndDelete(req.params.id);
+    const job = await Job.findOneAndDelete({ _id: req.params.id, user: req.user._id });
     if (!job) return res.status(404).json({ message: "Job not found" });
     res.json({ message: "Job deleted", id: req.params.id });
   } catch (error) {
@@ -117,6 +122,7 @@ export const deleteJob = async (req, res) => {
 export const getStats = async (req, res) => {
   try {
     const counts = await Job.aggregate([
+      { $match: { user: req.user._id } },
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
     const byStatus = {};

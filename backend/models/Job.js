@@ -4,6 +4,11 @@ const JOB_STATUS = ["saved", "applied", "interview", "offer", "rejected"];
 
 const jobSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     link: { type: String, trim: true },
     title: { type: String, trim: true, required: true },
     company: { type: String, trim: true },
@@ -22,6 +27,7 @@ const jobSchema = new mongoose.Schema(
 );
 
 jobSchema.index({ title: "text", company: "text", location: "text" });
+jobSchema.index({ user: 1, createdAt: -1 });
 
 const Job = mongoose.model("Job", jobSchema);
 

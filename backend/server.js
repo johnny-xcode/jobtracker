@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import jobRoutes from "./routes/jobRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -16,6 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
+app.use("/api/users", userRoutes);
 app.use("/api/jobs", jobRoutes);
 
 app.get("/", (req, res) => {

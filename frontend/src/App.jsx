@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "./auth/AuthContext.jsx";
 import {
   getJobs,
   getStats,
@@ -24,6 +25,7 @@ export default function App() {
   const [statusFilter, setStatusFilter] = useState("");
   const [notice, setNotice] = useState(null);
   const [modal, setModal] = useState(null);
+  const { user, logout } = useAuth();
 
   const notify = (message, type = "success") => {
     setNotice({ message, type });
@@ -141,17 +143,17 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-900">JobLens</h1>
-              <p className="text-xs text-slate-500">Job application tracker</p>
+              <p className="text-xs text-slate-500">{user?.name ? `Welcome, ${user.name}` : "Job application tracker"}</p>
             </div>
           </div>
-          <a
-            href="https://opencode.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-          >
-            About
-          </a>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={logout}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
